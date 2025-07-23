@@ -45,3 +45,6 @@ Make sure you have the following installed:
 - pip install -r requirements.txt
 - python manage.py migrate
 - python manage.py runserver
+
+### 🛠️ Set environment variables for settings.py
+- SECRET_KEY = your-secret-key
