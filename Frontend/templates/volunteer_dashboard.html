@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs justify-content-center mb-3" id="registerTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="apply-tab" data-bs-toggle="tab" data-bs-target="#apply" type="button"
+                role="tab" aria-controls="apply" aria-selected="true"><strong>Apply</strong></button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="applied-tab" data-bs-toggle="tab" data-bs-target="#applied" type="button"
+                role="tab" aria-controls="applied" aria-selected="false"><strong>Your Applications</strong></button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button"
+                role="tab" aria-controls="history" aria-selected="false"><strong>Completed</strong></button>
+        </li>
+    </ul>
+
+    <div class="tab-content p-4 bg-white shadow rounded" id="registerTabContent">
+        <!-- Apply Tab -->
+        <div class="tab-pane fade show active" id="apply" role="tabpanel" aria-labelledby="apply-tab">
+            <div class="row">
+                <!-- Filter Sidebar -->
+                <div class="col-md-3 mb-4">
+                    <div class="card border-0 bg-light">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Filter By</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="GET" action="{% url 'volunteer_dashboard' %}">
+                                <div class="mb-3">
+                                    <label for="locationFilter" class="form-label"><strong>State:</strong></label>
+                                    <select name="state" id="locationFilter" class="form-select">
+                                        <option value="">All</option>
+                                        {% for state_value, state_name in filter_state %}
+                                            <option value="{{ state_value }}" {% if state_value == selected_state %}selected{% endif %}>
+                                                {{ state_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="jobTypeFilter" class="form-label"><strong>Job Type:</strong></label>
+                                    <select name="job_type" id="jobTypeFilter" class="form-select">
+                                        <option value="">All</option>
+                                        {% for task_value, task_name in filter_task %}
+                                            <option value="{{ task_value }}" {% if task_value == selected_job_type %}selected{% endif %}>
+                                                {{ task_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="maxStartDateFilter" class="form-label"><strong>Start Date:</strong></label>
+                                    <input type="date" name="max_start_date" id="maxStartDateFilter" class="form-control" 
+                                        value="{% if max_start_date %}{{ max_start_date }}{% endif %}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="paymentFilter" class="form-label"><strong>Payment:</strong></label>
+                                    <select name="payment" id="paymentFilter" class="form-select">
+                                        <option value="">Both</option>
+                                        <option value="free" {% if payment_type == 'free' %}selected{% endif %}>Unpaid</option>
+                                        <option value="paid" {% if payment_type == 'paid' %}selected{% endif %}>Paid</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Tasks -->
+                <div class="col-md-9">
+                    <h4 class="text-dark mb-4"><strong>Available Tasks:</strong></h4>
+                    <div class="row g-4">
+                        {% for task in tasks %}
+                            {% if task.positions > 0 %}
+                                <div class="col-lg-6 col-md-12">
+                                    <div class="card h-100 border-2 shadow-lg">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-primary"><strong>{{ task.ngo.user.username }}</strong></h5>
+                                            <h6 class="card-subtitle mb-3 text-muted">{{ task.task_name }}</h6>
+                                            <p class="card-text">{{ task.task_description | truncatewords:25 }}</p>
+                                            <ul class="list-unstyled mb-4">
+                                                <li><strong>State:</strong> {{ task.state }}</li>
+                                                <li><strong>Start Date:</strong> {{ task.start_date }}</li>
+                                                <li><strong>Positions:</strong> {{ task.positions }}</li>
+                                                <li><strong>Payment:</strong> {{ task.payment }} ₹</li>
+                                            </ul>
+                                            <form method="POST" action="{% url 'apply_task' task.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-outline-primary w-100">Apply Now</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% empty %}
+                            <p>No tasks available for application.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Your Applications Tab -->
+        <div class="tab-pane fade" id="applied" role="tabpanel" aria-labelledby="applied-tab">
+            <div class="col-md-9 mx-auto">
+                <h4 class="text-dark mb-4"><strong>Your Applications</strong></h4>
+                <div class="row g-4">
+                    {% for application in applications %}
+                        {% if application.completed_task == False %}
+                        {% if application.completion_requested == False %}
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-primary"><strong>{{ application.task.task_name }}</strong></h5>
+                                        <p class="text-muted">Status: <strong>{{ application.application_status }}</strong></p>
+                                        <p class="text-muted">Applied At: {{ application.applied_at }}</p>
+                                        {% if application.application_status == "approved" %}
+                                            <p class="text-muted"><strong>Initial Meetup:</strong></p>
+                                            <p class="text-muted">Location: {{ application.task.initial_meetup_location }}</p>
+                                            <p class="text-muted">Date: {{ application.task.initial_meetup_date }}</p>
+                                            <p class="text-muted">Time: {{ application.task.initial_meetup_time }}</p>
+                                            {% if application.completion_requested == False %}
+                                                <a href="{% url 'task_completion' application.id %}" class="btn btn-outline-secondary w-100">Request Completion</a>
+                                            {% endif %}
+                                        {% endif %}
+                        
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                    {% empty %}
+                        <p>No applications found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Completed Tasks Tab -->
+        <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+            <div class="col-md-9 mx-auto">
+                <h4 class="text-dark mb-4"><strong>Completed Tasks</strong></h4>
+                <div class="row g-4">
+                    {% for application in applications %}
+                        {% if application.completed_task == True %}
+                            <div class="col-md-4">
+                                <div class="card h-100 border-0 shadow-sm bg-light">
+                                    <div class="card-body">
+                                        <h3 class="card-title text-primary"><strong>{{ application.task.ngo.user.username }}</strong></h3>
+                                        <h5 class="card-title text-secondary"><strong>{{ application.task.task_name }}</strong></h5>
+                                        <h3 class="card-title" style="color: lightgreen;"><strong>Completed</strong></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% empty %}
+                        <p>No Completed Tasks</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

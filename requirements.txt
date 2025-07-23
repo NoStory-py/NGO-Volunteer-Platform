@@ -1,0 +1,10 @@
+Django
+xhtml2pdf
+Pillow
+python-decouple
+django-crispy-forms
+gunicorn
+whitenoise
+psycopg2-binary
+django-widget-tweaks
+django-environ

@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .table-custom {
+        background-color: #f9f9f9;
+        /* Light background color for the table */
+        border-radius: 5px;
+        /* Rounded corners */
+        overflow: hidden;
+        /* Prevent overflow of rounded corners */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        /* Subtle shadow effect */
+    }
+
+    .table-custom th {
+        background-color: #343a40;
+        /* Dark background for table headers */
+        color: #ffffff;
+        /* White text color for headers */
+        font-size: 1.25rem;
+        /* Larger font size for headers */
+    }
+
+    .table-custom td,
+    .table-custom th {
+        vertical-align: middle;
+        /* Center align text in cells */
+        padding: 15px;
+        /* Add padding to table cells */
+        font-size: 1.1rem;
+        /* Larger font size for table cells */
+    }
+
+    .table-custom tbody tr:hover {
+        background-color: #e2e6ea;
+        /* Hover effect for table rows */
+    }
+
+    .badge-custom {
+        background-color: black;
+        /* Black background for status badge */
+        color: white;
+        /* White text color for status badge */
+        font-size: 1.2rem;
+        /* Larger font size for status badge */
+        padding: 8px 12px;
+        /* Add padding for badge */
+        border-radius: 0.25rem;
+        /* Rounded corners for badge */
+        }
+    .table-custom tbody tr {
+        border-bottom: 1px solid #dee2e6; /* Adjust the color as needed */
+    }
+    
+    .table-custom tbody tr:last-child {
+        border-bottom: none; /* Remove the bottom border of the last row */
+    }
+
+</style>
+<div class="tab-content mt-3" id="registerTabContent">
+
+    <ul class="nav nav-tabs" id="registerTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button"
+                role="tab" aria-controls="tasks" aria-selected="true"><strong>Manage Tasks</strong></button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="applications-tab" data-bs-toggle="tab" data-bs-target="#applications"
+                type="button" role="tab" aria-controls="applications"
+                aria-selected="false"><strong>Applications</strong></button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="task-updates-tab" data-bs-toggle="tab" data-bs-target="#task-updates"
+                type="button" role="tab" aria-controls="task-updates" aria-selected="false"><strong>Approve
+                    Completion</strong></button>
+        </li>
+    </ul>
+
+    <div class="tab-pane fade show active" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+
+        <div class="container-fluid ">
+
+            <div class="row">
+                <nav id="sidebarMenu" class="col-md-3 col-lg-2 bg-light sidebar">
+                    <div class="sidebar-sticky pt-3 ">
+                        <ul class="nav flex-column border border-secondary p-2" style="background-color: #ffffff;">
+                            <li class="nav-item">
+                                <a href="{% url 'ngo_dashboard' %}"
+                                    class="nav-link active"><strong>Dashboard</strong></a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#tasks" class="nav-link"><strong>Tasks</strong></a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+
+                <main role="main"
+                    class="col-md-9 col-lg-10 px-md-10 mt-3  border border-secondary shadow p-3 mb-3 rounded"
+                    style="background-color: #ffffff;">
+
+                    <h1 class="h2"><strong>NGO Dashboard</strong></h1>
+
+                    <div class="jumbotron jumbotron-fluid">
+                        <h1 class="display" style="font-size: 60px;"><strong>{{ name }}</strong></h1>
+                        <br>
+                        <h3 class="test text-center">{{ objective }}</h3>
+                        <br>
+                        <br>
+                    </div>
+
+                    <div class="container" id="taskOverview">
+                        <div class="row justify-content-center">
+                            <div class="col-md-6 col-lg-3 mb-4" style="margin-left: 50px;">
+                                <div class="card text-white" style="background-color: #343a40;">
+                                    <div class="card-header"><strong>Total Tasks:</strong></div>
+                                    <div class="card-body">
+                                        <p class="card-text">{{ total_tasks }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="card text-white" style="background-color: #343a40;">
+                                    <div class="card-header"><strong>Active Tasks:</strong></div>
+                                    <div class="card-body">
+                                        <p class="card-text"><strong>{{ active_tasks }}</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="card text-white" style="background-color: #343a40;">
+                                    <div class="card-header"><strong>Completed Tasks:</strong></div>
+                                    <div class="card-body">
+                                        <p class="card-text"><strong>{{ completed_tasks }}</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3 text-center">
+                                <button id="createTaskButton" class="btn btn-primary"><strong>Create
+                                        Task</strong></button>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div id="createTaskForm" style="display: none;">
+                        <h1>Create a New Task</h1>
+                        <form method="POST" action="{% url 'create_task' %}">
+                            {% csrf_token %}
+                            {{ task_form.as_p }}
+                            <button type="submit" class="btn btn-success">Submit Task</button>
+                            <button id="cancelTaskButton" type="button" class="btn btn-secondary">Cancel</button>
+                        </form>
+                    </div>
+
+
+
+                    <div class="task-list" style="display: none;">
+                        <h2>NGO Tasks:</h2><br>
+                        {% if tasks %}
+                        <ul class="list-group">
+                            {% for task in tasks %}
+                            <li class="list-group-item border border-secondary shadow p-3 mb-3 rounded">
+                                <h2>{{ task.task_name }}</h2>
+                                <p>Type: {{ task.task_type }}</p>
+                                <p>Description: {{ task.task_description }}</p>
+                                <p>Location: {{ task.task_location }}</p>
+                                <p>City: {{ task.city }}</p>
+                                <p>State: {{ task.state }}</p>
+                                <p>Start Date: {{ task.start_date }}</p>
+                                <p>End Date: {{ task.end_date }}</p>
+                                <p>Positions: {{ task.positions }}</p>
+                                <p>Payment: {{ task.payment }} ₹</p>
+                                <p>Initial Meetup Location: {{ task.initial_meetup_location }}</p>
+                                <p>Initial Meetup Date: {{ task.initial_meetup_date }}</p>
+                                <p>Initial Meetup Time: {{ task.initial_meetup_time }}</p>
+                                <button id="editTaskButton" class="btn btn-primary"><strong>Edit Task</strong></button>
+                                <button id="deleteTaskButton" class="btn btn-primary"
+                                    style="background-color: rgb(247, 68, 68);"><strong>Delete Task</strong></button>
+                            </li>
+                            <br>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p>You have no tasks yet. Create your first task!</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="container mt-5" id="editTaskContainer" style="display: none;">
+                        <h1>Edit Task</h1>
+                        <form method="POST">
+                            {% csrf_token %}
+                            {{ task_form.as_p }}
+                            <button type="submit" class="btn btn-success">Update Task</button>
+                        </form>
+                        <a href="{% url 'ngo_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+
+                    <div class="container mt-5" id="deleteTaskContainer" style="display: none;">
+                        <h2>Confirm Deletion</h2>
+                        <p>Are you sure you want to delete the task: <strong>{{ task.task_name }}</strong>?</p>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                            <a href="{% url 'ngo_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        </form>
+                    </div>
+
+                </main>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="tab-pane fade" id="applications" role="tabpanel" aria-labelledby="applications-tab">
+        <br>
+        <h2><strong>Manage Applications:</strong></h2>
+        <br>
+        <div class="table-responsive">
+            <table class="table table-striped table-sm mx-auto table-custom" style="width: 80%;">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Volunteer</th>
+                        <th>Task</th>
+                        <th>View Portfolio</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                    <tr>
+                        <td class="align-middle"><strong>{{ application.volunteer.username }}</strong></td>
+                        <td class="align-middle"><strong>{{ application.task.task_name }}</strong></td>
+                        <td class="align-middle">
+                            <a href="{% url 'download_portfolio' application.id %}" class="btn btn-info"><strong>View
+                                    Portfolio</strong></a>
+                        </td>
+                        <td class="align-middle">
+                            <span class="badge badge-custom 
+    {% if application.application_status == 'pending' %}badge-warning
+    {% elif application.application_status == 'approved' %}badge-success
+    {% else %}badge-danger{% endif %}" style="color: black; background-color: transparent;">
+                                <strong>{{ application.application_status }}</strong>
+                            </span>
+                        </td>
+                        <td class="align-middle">
+                            <form action="{% url 'update_status' application.id %}" method="post" class="form-inline">
+                                {% csrf_token %}
+                                <button type="submit" name="status" value="approved"
+                                    class="btn btn-success mb-2"><strong>Approve</strong></button>
+                                <button type="submit" name="status" value="rejected"
+                                    class="btn btn-danger mb-2 ml-2"><strong>Reject</strong></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No applications available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="task-updates" role="tabpanel" aria-labelledby="task-updates-tab">
+        <br>
+        <h2><strong>Manage Completion Requests:</strong></h2>
+        <br>
+        <div class="table-responsive">
+            <table class="table table-striped table-sm mx-auto table-custom" style="width: 80%;">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Volunteer</th>
+                        <th>Task</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in complete_requests %}
+                    <tr>
+                        <td class="align-middle"><strong>{{ application.volunteer.username }}</strong></td>
+                        <td class="align-middle"><strong>{{ application.task.task_name }}</strong></td>
+                        <td class="align-middle">
+                            <form action="{% url 'update_completion' application.id %}" method="post"
+                                class="form-inline">
+                                {% csrf_token %}
+                                <button type="submit" name="status" value="approved"
+                                    class="btn btn-success mb-2">Approve</button>
+                                <button type="submit" name="status" value="rejected"
+                                    class="btn btn-danger mb-2 ml-2">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">No Completion Requests</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('createTaskButton').onclick = function () {
+            document.getElementById('taskOverview').style.display = 'none';
+            document.getElementById('createTaskForm').style.display = 'block';
+            document.querySelector('.task-list').style.display = 'none';
+            document.getElementById('editTaskContainer').style.display = 'none';
+            document.getElementById('deleteTaskContainer').style.display = 'none';
+        };
+
+        document.getElementById('cancelTaskButton').onclick = function () {
+            document.getElementById('taskOverview').style.display = 'block';
+            document.getElementById('createTaskForm').style.display = 'none';
+            document.querySelector('.task-list').style.display = 'none';
+            document.getElementById('editTaskContainer').style.display = 'none';
+            document.getElementById('deleteTaskContainer').style.display = 'none';
+        };
+
+
+        document.querySelector('.nav-link[href="#tasks"]').onclick = function () {
+            document.getElementById('taskOverview').style.display = 'none';
+            document.getElementById('createTaskForm').style.display = 'none';
+            document.querySelector('.task-list').style.display = 'block';
+            document.getElementById('editTaskContainer').style.display = 'none';
+            document.getElementById('deleteTaskContainer').style.display = 'none';
+        };
+
+        document.getElementById('editTaskButton').onclick = function () {
+            document.getElementById('taskOverview').style.display = 'none';
+            document.getElementById('createTaskForm').style.display = 'none';
+            document.querySelector('.task-list').style.display = 'none';
+            document.getElementById('editTaskContainer').style.display = 'block';
+            document.getElementById('deleteTaskContainer').style.display = 'none';
+        };
+
+        document.getElementById('deleteTaskButton').onclick = function () {
+            document.getElementById('taskOverview').style.display = 'none';
+            document.getElementById('createTaskForm').style.display = 'none';
+            document.querySelector('.task-list').style.display = 'none';
+            document.getElementById('editTaskContainer').style.display = 'none';
+            document.getElementById('deleteTaskContainer').style.display = 'block';
+        };
+    </script>
+
+
+    {% endblock %}

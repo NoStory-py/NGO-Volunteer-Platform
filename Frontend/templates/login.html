@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  {% if messages %}
+    <div class="alert alert-success text-center">
+      {% for message in messages %}
+        <div>{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="login-form p-4 border rounded shadow" style="width: 400px; margin: 0 auto; background-color: #f8f9fa;">
+    <h1 class="text-center mb-4"><strong>Login</strong></h1>
+    <form method="post" action="{% url 'user_login' %}">
+      {% csrf_token %}
+      {{ login_form.as_p }}
+      <input type="hidden" name="user_type" id="userType" value="volunteer">
+
+      <div class="toggle-switch-container d-flex justify-content-center align-items-center mb-3">
+        <label class="switch">
+          <input type="checkbox" id="loginToggleSwitch">
+          <span class="slider round"></span>
+        </label>
+        <label id="toggleLabel" class="ms-2">Login as NGO?</label>
+      </div>
+      
+      <div class="text-center"> 
+        <button type="submit" class="btn btn-primary w-100 mt-3">Login</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('loginToggleSwitch').addEventListener('change', function() {
+    const isChecked = this.checked;
+    const toggleLabel = document.getElementById('toggleLabel');
+    const userTypeInput = document.getElementById('userType');
+  
+    if (isChecked) {
+        userTypeInput.value = 'ngo';
+    } else {
+        userTypeInput.value = 'volunteer';
+    }
+  });
+</script>
+{% endblock %}
