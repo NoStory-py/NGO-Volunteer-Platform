@@ -43,6 +43,7 @@ Make sure you have the following installed:
 - git clone https://github.com/NoStory-py/ngo-volunteer-platform.git
 - cd ngo-volunteer-platform
 - pip install -r requirements.txt
+- python manage.py makemigrations
 - python manage.py migrate
 - python manage.py runserver
 
