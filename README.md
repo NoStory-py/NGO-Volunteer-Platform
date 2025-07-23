@@ -16,6 +16,9 @@ Whether it's environmental work, education, healthcare, or community outreach, t
 - 🔍 Search & filter opportunities by cause or location
 - 🕓 Track Task completion
 - 📨 Generate automatic portfolios based on your contributions
+- 
+**Note:**  
+This web app was primarily designed for desktop screens and does not currently feature a responsive UI for mobile or tablet devices.
 
 ## 🛠️ Tech Stack
 
