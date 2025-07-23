@@ -12,9 +12,9 @@ Whether it's environmental work, education, healthcare, or community outreach, t
 
 - 🧑 Volunteer sign-up & login system
 - 🏢 NGO registration and dashboard
-- 📅 Event creation and management
+- 📅 Event & Task creation and management
 - 🔍 Search & filter opportunities by cause or location
-- 🕓 Track volunteer hours and history
+- 🕓 Track Task completion
 - 📨 Generate automatic portfolios based on your contributions
 
 ## 🛠️ Tech Stack
